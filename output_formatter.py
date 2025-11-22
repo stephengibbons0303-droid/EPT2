@@ -37,6 +37,8 @@ def extract_array_from_response(data):
     Handles cases like: {"questions": [...]} or {"results": [...]} or just [...]
     Also handles single dict objects that should be wrapped in an array.
     Returns (array, error_message)
+    
+    Updated to include 'candidates' and 'validated' wrapper keys for new three-stage architecture.
     """
     if data is None:
         return None, "No data to extract from."
@@ -47,8 +49,8 @@ def extract_array_from_response(data):
 
     # Wrapped in a dict with a single key
     if isinstance(data, dict):
-        # Try common wrapper keys
-        for key in ['questions', 'results', 'items', 'data', 'output', 'batch', 'responses']:
+        # Try common wrapper keys (including new architecture keys: candidates, validated)
+        for key in ['questions', 'candidates', 'validated', 'results', 'items', 'data', 'output', 'batch', 'responses']:
             if key in data and isinstance(data[key], list):
                 return data[key], None
 
@@ -60,11 +62,11 @@ def extract_array_from_response(data):
 
         # Check if this looks like a single item that should be in an array
         # Stage 1 items have: "Item Number", "Assessment Focus", etc.
-        # Stage 2 items have: "Item Number", "Distractor A", etc.
-        # Stage 3 items have: "Item Number", "Overall Quality", etc.
+        # Stage 2 items have: "Item Number", "Candidate A", etc.
+        # Stage 3 items have: "Item Number", "Selected Distractor A", etc.
         stage1_fields = ["Item Number", "Assessment Focus", "Complete Sentence", "Correct Answer"]
-        stage2_fields = ["Item Number", "Distractor A", "Distractor B", "Distractor C"]
-        stage3_fields = ["Item Number", "Overall Quality"]
+        stage2_fields = ["Item Number", "Candidate A", "Candidate B", "Candidate C"]
+        stage3_fields = ["Item Number", "Selected Distractor A", "Selected Distractor B", "Selected Distractor C"]
 
         # Check if this dict contains fields from any stage
         has_stage1 = any(field in data for field in stage1_fields)
